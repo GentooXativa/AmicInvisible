@@ -1,0 +1,15 @@
+version: '3.1'
+
+services:
+  web:
+    image: your-registry/amicinvisible:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - /data/amicinvisible:/app/data
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - CONFIG_FILE=data/config.json
+      - PUBLIC_URL=https://amic-invisible.yourdomain.com
+   

@@ -96,12 +96,8 @@ const init = () => {
   const config = JSON.parse(readFileSync(configFile, 'utf8'));
   randomizedArray = randomizeArrayItems(config.people);
 
-  debug(`Randomized array: ${randomizedArray}`);
-
   // const hashedArray = randomizedArray;
   const hashedArray = hashArrayItems(randomizedArray);
-
-  debug(`Hashed array: ${hashedArray}`);
 
   // generate pair of people without repeat
   const pairs = [];
@@ -163,8 +159,11 @@ app.listen(port, () => {
 
   debug(`Total people into config: ${config.people.length}`);
 
-  if (!existsSync('./data')) {
-    mkdirSync('./data');
+  if (!existsSync('./data') || !existsSync('./data/pairs.json')) {
+    if (!existsSync('./data')) {
+      mkdirSync('./data');
+    }
+
     init();
     dumpUrls();
   } else {
