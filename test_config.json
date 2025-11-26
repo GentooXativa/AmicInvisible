@@ -1,14 +1,20 @@
 {
-    "people": [
-        "Usuario 1",
-        "Usuario 2",
-        "Usuario 3",
-        "Usuario 4",
-        "Usuario 5",
-        "Usuario 6",
-        "Usuario 7",
-        "Usuario 8",
-        "Usuario 9",
-        "Usuario 10"
-    ]
+  "skipSms": true,
+  "twilio": {
+    "accountSid": "YOUR_TWILIO_ACCOUNT_SID",
+    "authToken": "YOUR_TWILIO_AUTH_TOKEN",
+    "fromNumber": "+1234567890"
+  },
+  "people": [
+    { "name": "Maria", "phone": "+34612345001" },
+    { "name": "Joan", "phone": "+34612345002" },
+    { "name": "Carme", "phone": "+34612345003" },
+    { "name": "Vicent", "phone": "+34612345004" },
+    { "name": "Anna", "phone": "+34612345005" },
+    { "name": "Pau", "phone": "+34612345006" },
+    { "name": "Rosa", "phone": "+34612345007" },
+    { "name": "Lluís", "phone": "+34612345008" },
+    { "name": "Teresa", "phone": "+34612345009" },
+    { "name": "Jordi", "phone": "+34612345010" }
+  ]
 }
