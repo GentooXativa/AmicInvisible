@@ -32,8 +32,14 @@ const checkHashedPerson = (hashedPerson) => {
   return found;
 };
 
+const sendErrorPage = (res, message) => {
+  const htmlTemplate = readFileSync('./error.html', 'utf8');
+  const html = htmlTemplate.replace('{{error_message}}', message);
+  res.status(400).send(html);
+};
+
 app.get('/', (req, res) => {
-  res.send("T'has equivocat, torna a mirar el link del whatsapp");
+  sendErrorPage(res, "T'has equivocat de link! Torna a mirar el missatge del WhatsApp.");
 });
 
 app.get('/qui-hem-toca-a-mi/:id', (req, res) => {
@@ -41,101 +47,134 @@ app.get('/qui-hem-toca-a-mi/:id', (req, res) => {
   debug(`Request for id: ${id}`);
 
   const uuidsFile = './data/uuids.json';
+
+  if (!existsSync(uuidsFile)) {
+    sendErrorPage(res, 'El joc encara no ha sigut inicialitzat.');
+    return;
+  }
+
   const uuids = JSON.parse(readFileSync(uuidsFile, 'utf8'));
 
   const person = uuids.find((item) => item.id === id);
 
   if (person) {
-    const pairsFile = './data/pairs.json';
-    const pairs = JSON.parse(readFileSync(pairsFile, 'utf8'));
+    const assignmentsFile = './data/assignments.json';
 
-    const pair = pairs.find((item) => item.includes(person.person));
+    if (!existsSync(assignmentsFile)) {
+      sendErrorPage(res, 'Les assignacions encara no estan preparades.');
+      return;
+    }
 
-    if (pair) {
-      const otherPerson = pair.find((item) => item !== person.person);
-      const otherPersonUuid = uuids.find((item) => item.person === otherPerson);
+    const assignments = JSON.parse(readFileSync(assignmentsFile, 'utf8'));
 
-      const target = checkHashedPerson(otherPersonUuid.person);
+    // Find who this person has to give a gift to
+    const assignment = assignments.find((item) => item.giver === person.person);
+
+    if (assignment) {
+      const target = checkHashedPerson(assignment.receiver);
       const self = checkHashedPerson(person.person);
+
+      if (!target || !self) {
+        sendErrorPage(res, 'Hi ha hagut un error buscant les dades.');
+        return;
+      }
 
       const htmlTemplate = readFileSync('./index.html', 'utf8');
 
       const html = htmlTemplate
-        .replace('{{target}}', target)
-        .replace('{{self}}', self);
+        .replace(/{{target}}/g, target)
+        .replace(/{{self}}/g, self);
 
       res.send(html);
     } else {
-      res.send({});
+      sendErrorPage(res, 'No hem trobat la teua assignació. Contacta amb l\'organitzador.');
     }
   } else {
-    res.status(500);
-    res.send({});
+    sendErrorPage(res, 'Aquest link no és vàlid. Assegura\'t de copiar-lo sencer!');
   }
 });
 
 const randomizeArrayItems = (array) => {
   const newArray = [];
+  const arrayCopy = [...array];
 
-  while (array.length > 0) {
-    const randomIndex = Math.floor(Math.random() * array.length);
-    const randomItem = array.splice(randomIndex, 1)[0];
+  while (arrayCopy.length > 0) {
+    const randomIndex = Math.floor(Math.random() * arrayCopy.length);
+    const randomItem = arrayCopy.splice(randomIndex, 1)[0];
     newArray.push(randomItem);
   }
 
   return newArray;
 };
 
-const hashArrayItems = (array) => {
-  const hashedArray = array.map((item) => crypto.createHash('sha256').update(item).digest('hex'));
-  return hashedArray;
+const hashPerson = (name) => crypto.createHash('sha256').update(name).digest('hex');
+
+const hashArrayItems = (array) => array.map((item) => hashPerson(item));
+
+/**
+ * Algorisme de l'Amic Invisible:
+ * Crea un cercle on cada persona dona un regal a la següent.
+ * Persona[0] → Persona[1] → Persona[2] → ... → Persona[n-1] → Persona[0]
+ *
+ * Regles:
+ * - Ningú es pot tocar a si mateix
+ * - Cada persona dona exactament un regal
+ * - Cada persona rep exactament un regal
+ * - Qui et dona el regal és diferent de qui tu dones el regal
+ */
+const createCircleAssignments = (hashedArray) => {
+  const assignments = [];
+
+  for (let i = 0; i < hashedArray.length; i += 1) {
+    const giver = hashedArray[i];
+    // Each person gives to the next one, last person gives to the first
+    const receiver = hashedArray[(i + 1) % hashedArray.length];
+
+    assignments.push({ giver, receiver });
+  }
+
+  return assignments;
 };
 
 const init = () => {
-  let randomizedArray = [];
   const config = JSON.parse(readFileSync(configFile, 'utf8'));
-  randomizedArray = randomizeArrayItems(config.people);
 
-  // const hashedArray = randomizedArray;
+  if (config.people.length < 2) {
+    console.error('Error: Cal almenys 2 persones per a l\'amic invisible!');
+    return;
+  }
+
+  // Randomize the order of people
+  const randomizedArray = randomizeArrayItems(config.people);
+
+  // Hash all names for privacy
   const hashedArray = hashArrayItems(randomizedArray);
 
-  // generate pair of people without repeat
-  const pairs = [];
-  let pair = [];
-  let pairIndex = 0;
-  let pairCount = 0;
+  // Create circle assignments (proper Secret Santa algorithm)
+  // Each person gives to the next one in the circle
+  const assignments = createCircleAssignments(hashedArray);
 
-  hashedArray.forEach((item) => {
-    if (pairIndex === 0) {
-      pair = [];
-      pair.push(item);
-      pairIndex += 1;
-    } else {
-      pair.push(item);
-      pairIndex = 0;
-      pairs.push(pair);
-      pairCount += 1;
-    }
-  });
+  debug(`Total participants: ${hashedArray.length}`);
+  debug(`Total assignments: ${assignments.length}`);
 
-  debug(`Total pairs: ${pairCount}`);
-
-  // generate uuid for each people
+  // Generate UUID for each person
   const uuids = [];
   hashedArray.forEach((person) => {
     uuids.push({ id: uuid.v4(), person });
   });
 
-  // save uuids into file
+  // Save UUIDs to file
   const uuidsFile = './data/uuids.json';
   if (!existsSync(uuidsFile)) {
-    writeFileSync(uuidsFile, JSON.stringify(uuids), 'utf8');
+    writeFileSync(uuidsFile, JSON.stringify(uuids, null, 2), 'utf8');
+    debug('UUIDs saved to file');
   }
 
-  // save pairs into file
-  const pairsFile = './data/pairs.json';
-  if (!existsSync(pairsFile)) {
-    writeFileSync(pairsFile, JSON.stringify(pairs), 'utf8');
+  // Save assignments to file
+  const assignmentsFile = './data/assignments.json';
+  if (!existsSync(assignmentsFile)) {
+    writeFileSync(assignmentsFile, JSON.stringify(assignments, null, 2), 'utf8');
+    debug('Assignments saved to file');
   }
 };
 
@@ -143,14 +182,26 @@ const dumpUrls = () => {
   const uuidsFile = './data/uuids.json';
   const uuids = JSON.parse(readFileSync(uuidsFile, 'utf8'));
 
+  console.log('\n🎄 URLs per a l\'Amic Invisible 🎄\n');
+  console.log('='.repeat(60));
+
   const urls = [];
 
   uuids.forEach((item) => {
     const who = checkHashedPerson(item.person);
-    urls.push(`${who.padEnd(' ', 20)} - ${publicUrl}/qui-hem-toca-a-mi/${item.id}`);
+    const url = `${publicUrl}/qui-hem-toca-a-mi/${item.id}`;
+    urls.push({ name: who, url });
   });
 
-  console.dir(urls.sort());
+  // Sort by name and print
+  urls.sort((a, b) => a.name.localeCompare(b.name));
+  urls.forEach(({ name, url }) => {
+    console.log(`\n📧 ${name}`);
+    console.log(`   ${url}`);
+  });
+
+  console.log('\n' + '='.repeat(60));
+  console.log(`\n✅ Total: ${urls.length} participants\n`);
 };
 
 app.listen(port, () => {
@@ -159,7 +210,7 @@ app.listen(port, () => {
 
   debug(`Total people into config: ${config.people.length}`);
 
-  if (!existsSync('./data') || !existsSync('./data/pairs.json')) {
+  if (!existsSync('./data') || !existsSync('./data/assignments.json')) {
     if (!existsSync('./data')) {
       mkdirSync('./data');
     }

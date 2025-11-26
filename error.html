@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Amic Invisible - {{self}}</title>
+    <title>Amic Invisible - Error</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,9 +17,10 @@
         50% { transform: translateY(-10px); }
       }
 
-      @keyframes sparkle {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.5; }
+      @keyframes shake {
+        0%, 100% { transform: rotate(0deg); }
+        25% { transform: rotate(-5deg); }
+        75% { transform: rotate(5deg); }
       }
 
       @keyframes snow {
@@ -28,7 +29,7 @@
       }
 
       .float-animation { animation: float 3s ease-in-out infinite; }
-      .sparkle { animation: sparkle 2s ease-in-out infinite; }
+      .shake-animation { animation: shake 0.5s ease-in-out infinite; }
 
       .snowflake {
         position: fixed;
@@ -42,17 +43,16 @@
       }
 
       .gradient-bg {
-        background: linear-gradient(135deg, #1a472a 0%, #2d5a3d 50%, #1a472a 100%);
+        background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 50%, #7f1d1d 100%);
       }
 
       .card-gradient {
         background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
       }
 
-      .gift-shadow {
+      .error-shadow {
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25),
-                    0 0 40px rgba(220, 38, 38, 0.1),
-                    0 0 80px rgba(34, 197, 94, 0.1);
+                    0 0 40px rgba(220, 38, 38, 0.2);
       }
     </style>
   </head>
@@ -66,7 +66,7 @@
         <div class="flex items-center justify-center gap-3">
           <span class="text-4xl">🎄</span>
           <h1 class="font-christmas text-3xl md:text-4xl text-white tracking-wide">
-            <span class="text-red-500">Greti</span><span class="text-amber-300">Amic</span><span class="text-white">Invisible</span>
+            <span class="text-amber-300">Greti</span><span class="text-white">Amic</span><span class="text-amber-300">Invisible</span>
           </h1>
           <span class="text-4xl">🎄</span>
         </div>
@@ -77,76 +77,58 @@
     <main class="relative z-10 container mx-auto px-4 py-8 md:py-12">
       <div class="max-w-2xl mx-auto">
 
-        <!-- Gift Card -->
-        <div class="card-gradient rounded-3xl gift-shadow p-8 md:p-12 relative overflow-hidden">
+        <!-- Error Card -->
+        <div class="card-gradient rounded-3xl error-shadow p-8 md:p-12 relative overflow-hidden">
 
-          <!-- Decorative ribbon -->
-          <div class="absolute top-0 left-1/2 -translate-x-1/2 w-16 h-32 bg-red-600 rounded-b-full"></div>
-          <div class="absolute top-6 left-1/2 -translate-x-1/2 w-12 h-12 bg-red-600 rounded-full flex items-center justify-center">
-            <span class="text-2xl float-animation">🎁</span>
+          <!-- Decorative element -->
+          <div class="absolute top-6 left-1/2 -translate-x-1/2">
+            <span class="text-6xl shake-animation inline-block">🤔</span>
           </div>
 
           <!-- Content -->
-          <div class="mt-16 text-center">
+          <div class="mt-20 text-center">
 
-            <!-- Greeting -->
+            <!-- Error message -->
             <div class="mb-8">
-              <p class="text-gray-500 text-lg mb-2">Hola,</p>
-              <h2 class="font-christmas text-4xl md:text-5xl text-green-700 mb-2">
-                {{self}}!
+              <h2 class="font-christmas text-4xl md:text-5xl text-red-600 mb-4">
+                Uuups!
               </h2>
-              <div class="flex items-center justify-center gap-2 text-amber-500">
-                <span class="sparkle">✨</span>
-                <span class="text-sm font-semibold uppercase tracking-widest">Enhorabona</span>
-                <span class="sparkle">✨</span>
-              </div>
+              <p class="text-gray-600 text-lg">
+                {{error_message}}
+              </p>
             </div>
 
             <!-- Divider -->
             <div class="flex items-center justify-center gap-4 my-8">
-              <div class="h-px bg-gradient-to-r from-transparent via-green-300 to-transparent flex-1"></div>
-              <span class="text-2xl">🎅</span>
+              <div class="h-px bg-gradient-to-r from-transparent via-red-300 to-transparent flex-1"></div>
+              <span class="text-2xl">❄️</span>
               <div class="h-px bg-gradient-to-r from-transparent via-red-300 to-transparent flex-1"></div>
             </div>
 
-            <!-- Target reveal -->
-            <div class="bg-gradient-to-br from-green-50 to-red-50 rounded-2xl p-6 md:p-8 mb-8 border-2 border-dashed border-green-200">
-              <p class="text-gray-600 text-lg mb-4">
-                T'ha tocat fer un regal a...
-              </p>
-              <div class="relative inline-block">
-                <h3 class="font-christmas text-5xl md:text-6xl text-red-600 float-animation">
-                  {{target}}
-                </h3>
-                <div class="absolute -top-2 -right-6 text-2xl sparkle">⭐</div>
-                <div class="absolute -bottom-2 -left-6 text-2xl sparkle" style="animation-delay: 0.5s;">⭐</div>
-              </div>
-              <p class="text-gray-500 mt-4 text-sm">
-                per a l'amic invisible d'enguany!
-              </p>
-            </div>
-
-            <!-- Budget info -->
-            <div class="bg-amber-50 rounded-xl p-4 md:p-6 border border-amber-200">
-              <div class="flex items-center justify-center gap-3">
-                <span class="text-3xl">💰</span>
+            <!-- Help message -->
+            <div class="bg-amber-50 rounded-2xl p-6 border border-amber-200">
+              <div class="flex items-start gap-4">
+                <span class="text-3xl">💡</span>
                 <div class="text-left">
-                  <p class="text-amber-800 font-semibold">
-                    Pressupost màxim
+                  <p class="text-amber-800 font-semibold mb-2">
+                    Què pots fer?
                   </p>
-                  <p class="text-amber-600 text-2xl font-bold font-christmas">
-                    25 euros
-                  </p>
+                  <ul class="text-amber-700 text-sm space-y-2">
+                    <li class="flex items-center gap-2">
+                      <span>📱</span>
+                      <span>Torna a mirar el link del WhatsApp</span>
+                    </li>
+                    <li class="flex items-center gap-2">
+                      <span>🔗</span>
+                      <span>Assegura't de copiar tot l'enllaç complet</span>
+                    </li>
+                    <li class="flex items-center gap-2">
+                      <span>👥</span>
+                      <span>Pregunta a qui t'ha enviat el link</span>
+                    </li>
+                  </ul>
                 </div>
               </div>
-            </div>
-
-            <!-- Secret reminder -->
-            <div class="mt-8 flex items-center justify-center gap-2 text-gray-400">
-              <span>🤫</span>
-              <p class="text-sm italic">
-                Recorda: és un secret! No digues a ningú qui t'ha tocat.
-              </p>
             </div>
 
           </div>
@@ -154,11 +136,9 @@
 
         <!-- Footer decoration -->
         <div class="flex items-center justify-center gap-4 mt-8 text-4xl">
-          <span class="float-animation" style="animation-delay: 0s;">🎁</span>
+          <span class="float-animation" style="animation-delay: 0s;">❄️</span>
           <span class="float-animation" style="animation-delay: 0.3s;">🎄</span>
-          <span class="float-animation" style="animation-delay: 0.6s;">⭐</span>
-          <span class="float-animation" style="animation-delay: 0.9s;">🎄</span>
-          <span class="float-animation" style="animation-delay: 1.2s;">🎁</span>
+          <span class="float-animation" style="animation-delay: 0.6s;">❄️</span>
         </div>
 
       </div>
@@ -166,7 +146,7 @@
 
     <!-- Footer -->
     <footer class="relative z-10 py-6 text-center">
-      <p class="text-green-200 text-sm opacity-70">
+      <p class="text-red-200 text-sm opacity-70">
         Fetes amb ❤️ per a la família i amics
       </p>
     </footer>
@@ -176,7 +156,7 @@
       function createSnowflakes() {
         const container = document.getElementById('snowflakes');
         const snowflakeChars = ['❄', '❅', '❆', '•'];
-        const numberOfSnowflakes = 30;
+        const numberOfSnowflakes = 20;
 
         for (let i = 0; i < numberOfSnowflakes; i++) {
           const snowflake = document.createElement('div');
